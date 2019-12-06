@@ -8,7 +8,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import utils.Normalizer;
 import utils.Transaction;
 
 import java.util.ArrayList;
@@ -90,7 +89,7 @@ public class BuyingBehaviour extends CyclicBehaviour {
                     if (sellerResponse.getContent().split(",")[3].equals(bestSellingAgentName)) {
                         ACLMessage reply = sellerResponse.createReply();
                         reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                        reply.setContent(this.getAgent().getName());
+                        reply.setContent(this.getAgent().getName() + "," + bestSellerQuantity + "," + bestSellingPrice + ',' + bestSellingAgentName);
                         this.getAgent().send(reply);
                     }
                     // Send refusals to others seller
@@ -106,6 +105,8 @@ public class BuyingBehaviour extends CyclicBehaviour {
 
             }
             // Wait for confirmation
+            // TODO USE SAME PROTOCOL TO AVOID HAVING TO PERSIST INFORMATION
+            // TODO USE THIS LIKE A PING/PONG (DO NOT FORGET TO CHANGE SellingBehaviour IN THIS CASE)
             ACLMessage potentialConfirmation = this.getAgent().receive();
             if (potentialConfirmation != null) {
                 {
@@ -114,10 +115,12 @@ public class BuyingBehaviour extends CyclicBehaviour {
                         if (potentialConfirmation.getPerformative() == ACLMessage.CONFIRM) {
                             ((ProducerConsumer) this.getAgent()).setMoney(((ProducerConsumer) this.getAgent()).getMoney() - this.pendingTransactions.get(potentialConfirmation.getContent()).getBuyingPrice());
                             ((ProducerConsumer) this.getAgent()).setConsumingStock(((ProducerConsumer) this.getAgent()).getConsumingStock() + this.pendingTransactions.get(potentialConfirmation.getContent()).getBuyingQuantity());
+                            ((ProducerConsumer) this.getAgent()).agentPrint("Confirmation received, new state " + ((ProducerConsumer) this.getAgent()).toString());
+
                             return;
                         }
                     } else {
-                        ((ProducerConsumer) this.getAgent()).agentPrint("Confirmation received from agent" + potentialConfirmation.getContent() + " not listed in the map");
+                        ((ProducerConsumer) this.getAgent()).agentPrintError("Confirmation received from agent" + potentialConfirmation.getContent() + " not listed in the map");
                     }
                 }
             }

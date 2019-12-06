@@ -1,5 +1,8 @@
 package agents;
 
+import behaviours.BuyingBehaviour;
+import behaviours.ProducerBehaviour;
+import behaviours.SellingBehaviour;
 import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -50,6 +53,9 @@ public class ProducerConsumer extends Agent {
         } catch (FIPAException e) {
             e.printStackTrace();
         }
+        this.addBehaviour(new ProducerBehaviour());
+        this.addBehaviour(new SellingBehaviour());
+        this.addBehaviour(new BuyingBehaviour(this));
 
     }
 
@@ -138,5 +144,19 @@ public class ProducerConsumer extends Agent {
 
     public void setHappiness(double happiness) {
         this.happiness = happiness;
+    }
+
+    @Override
+    public String toString() {
+        return "ProducerConsumer{" +
+                "money=" + money +
+                ", sellingStock=" + sellingStock +
+                ", consumingStock=" + consumingStock +
+                ", sellingPrice=" + sellingPrice +
+                ", buyingPrice=" + buyingPrice +
+                ", sellingType='" + sellingType + '\'' +
+                ", consumingType='" + consumingType + '\'' +
+                ", happiness=" + happiness +
+                '}';
     }
 }
