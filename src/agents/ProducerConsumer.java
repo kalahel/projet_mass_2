@@ -1,8 +1,6 @@
 package agents;
 
-import behaviours.BuyingBehaviour;
-import behaviours.ProducerBehaviour;
-import behaviours.SellingBehaviour;
+import behaviours.*;
 import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -11,6 +9,7 @@ import jade.domain.FIPAException;
 
 public class ProducerConsumer extends Agent {
     public static final int MAX_STOCK = 200;
+    public static final double CONSUMED_STOCK_PER_TICK = 2;
 
     private double money;
     private double sellingStock;
@@ -20,6 +19,7 @@ public class ProducerConsumer extends Agent {
     private String sellingType;
     private String consumingType;
     private double happiness;
+    private boolean isTryingToBuy;
 
 
     @Override
@@ -31,6 +31,7 @@ public class ProducerConsumer extends Agent {
         this.happiness = 1.0;
         this.buyingPrice = 10;
         this.sellingPrice = 12;
+        this.isTryingToBuy = false;
 
         Object[] args = getArguments();
         if (args != null && args.length >= 2) {
@@ -54,8 +55,9 @@ public class ProducerConsumer extends Agent {
             e.printStackTrace();
         }
         this.addBehaviour(new ProducerBehaviour());
+        this.addBehaviour(new ConsumingBehaviour());
         this.addBehaviour(new SellingBehaviour());
-        this.addBehaviour(new BuyingBehaviour(this));
+        this.addBehaviour(new BuyingDecisionBehaviour());
 
     }
 
@@ -144,6 +146,14 @@ public class ProducerConsumer extends Agent {
 
     public void setHappiness(double happiness) {
         this.happiness = happiness;
+    }
+
+    public boolean isTryingToBuy() {
+        return isTryingToBuy;
+    }
+
+    public void setTryingToBuy(boolean tryingToBuy) {
+        isTryingToBuy = tryingToBuy;
     }
 
     @Override
