@@ -1,10 +1,20 @@
 package behaviours;
 
 import agents.ProducerConsumer;
+import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Random;
+
 public class SellingBehaviour extends CyclicBehaviour {
+    private ProducerConsumer producerConsumerAgent;
+
+    public SellingBehaviour(Agent a) {
+        super(a);
+        this.producerConsumerAgent = (ProducerConsumer) a;
+    }
+
     @Override
     public void action() {
         sellingRoutine();
@@ -15,9 +25,11 @@ public class SellingBehaviour extends CyclicBehaviour {
         if (receivedProposal != null) {
             // Check the type of response
             if (receivedProposal.getPerformative() == ACLMessage.CFP) {
-                // Seller try to sell all their stock at once
-                double proposedQuantity = ((ProducerConsumer) this.getAgent()).getSellingStock();
-                double sellingPrice = ((ProducerConsumer) this.getAgent()).getSellingPrice() * proposedQuantity;
+                // Seller try to sell a portion of its stock
+                double proposedQuantity = this.producerConsumerAgent.getSellingStock()/100;
+                double sellingPrice = this.producerConsumerAgent.getSellingPrice() * proposedQuantity;
+                if (proposedQuantity > ProducerConsumer.MAX_STOCK)
+                    this.producerConsumerAgent.agentPrintError("Proposed more than theoretical max stock, agent state : \n" + this.getAgent().toString());
                 ACLMessage reply = receivedProposal.createReply();
                 reply.setPerformative(ACLMessage.PROPOSE);
                 reply.setContent(receivedProposal.getContent() + "," +
@@ -25,18 +37,18 @@ public class SellingBehaviour extends CyclicBehaviour {
                         sellingPrice + ',' +
                         this.getAgent().getName());
                 this.getAgent().send(reply);
-                ((ProducerConsumer) this.getAgent()).agentPrint("Proposition sent to : " + receivedProposal.getContent());
+                this.producerConsumerAgent.agentPrint("Proposition sent to : " + receivedProposal.getContent());
             } else if (receivedProposal.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
                 ACLMessage reply = receivedProposal.createReply();
                 reply.setPerformative(ACLMessage.CONFIRM);
-                ((ProducerConsumer) this.getAgent()).setSellingStock(((ProducerConsumer) this.getAgent()).getSellingStock()
+                this.producerConsumerAgent.setSellingStock(this.producerConsumerAgent.getSellingStock()
                         - Double.parseDouble(receivedProposal.getContent().split(",")[1]));
 
-                ((ProducerConsumer) this.getAgent()).setMoney(((ProducerConsumer) this.getAgent()).getMoney()
+                this.producerConsumerAgent.setMoney(this.producerConsumerAgent.getMoney()
                         + Double.parseDouble(receivedProposal.getContent().split(",")[2]));
-                reply.setContent(this.getAgent().getName());
+                reply.setContent(receivedProposal.getContent());
                 this.getAgent().send(reply);
-                ((ProducerConsumer) this.getAgent()).agentPrint("Confirmation sent to : " + receivedProposal.getContent());
+                this.producerConsumerAgent.agentPrint("Confirmation sent to : " + receivedProposal.getContent());
 
             }
         }

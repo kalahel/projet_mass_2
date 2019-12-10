@@ -10,12 +10,13 @@ import jade.domain.FIPAException;
 public class ProducerConsumer extends Agent {
     public static final int MAX_STOCK = 200;
     public static final double CONSUMED_STOCK_PER_TICK = 2;
+    public static final int PRODUCTION_RATE = 3;
+
 
     private double money;
     private double sellingStock;
     private double consumingStock;
     private double sellingPrice;
-    private double buyingPrice;
     private String sellingType;
     private String consumingType;
     private double happiness;
@@ -29,7 +30,6 @@ public class ProducerConsumer extends Agent {
         this.sellingStock = 10;
         this.consumingStock = 10;
         this.happiness = 1.0;
-        this.buyingPrice = 10;
         this.sellingPrice = 12;
         this.isTryingToBuy = false;
 
@@ -55,8 +55,8 @@ public class ProducerConsumer extends Agent {
             e.printStackTrace();
         }
         this.addBehaviour(new ProducerBehaviour());
-        this.addBehaviour(new ConsumingBehaviour());
-        this.addBehaviour(new SellingBehaviour());
+        this.addBehaviour(new ConsumingBehaviour(this));
+        this.addBehaviour(new SellingBehaviour(this));
         this.addBehaviour(new BuyingDecisionBehaviour());
 
     }
@@ -84,9 +84,7 @@ public class ProducerConsumer extends Agent {
         return money;
     }
 
-    public static int getMaxStock() {
-        return MAX_STOCK;
-    }
+
 
     public void setMoney(double money) {
         this.money = money;
@@ -112,17 +110,6 @@ public class ProducerConsumer extends Agent {
         return sellingPrice;
     }
 
-    public void setSellingPrice(double sellingPrice) {
-        this.sellingPrice = sellingPrice;
-    }
-
-    public double getBuyingPrice() {
-        return buyingPrice;
-    }
-
-    public void setBuyingPrice(double buyingPrice) {
-        this.buyingPrice = buyingPrice;
-    }
 
     public String getSellingType() {
         return sellingType;
@@ -163,7 +150,6 @@ public class ProducerConsumer extends Agent {
                 ", sellingStock=" + sellingStock +
                 ", consumingStock=" + consumingStock +
                 ", sellingPrice=" + sellingPrice +
-                ", buyingPrice=" + buyingPrice +
                 ", sellingType='" + sellingType + '\'' +
                 ", consumingType='" + consumingType + '\'' +
                 ", happiness=" + happiness +

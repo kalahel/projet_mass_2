@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BuyingBehaviour extends Behaviour {
+    private ProducerConsumer producerConsumerAgent;
     private Map<String, DFAgentDescription> pendingReaching;
     private Map<String, Transaction> pendingTransactions;
     private List<ACLMessage> sellerResponses;
@@ -27,6 +28,7 @@ public class BuyingBehaviour extends Behaviour {
 
     public BuyingBehaviour(Agent a) {
         super(a);
+        this.producerConsumerAgent = (ProducerConsumer) a;
         this.pendingReaching = new HashMap<>();
         this.pendingTransactions = new HashMap<>();
         this.sellerResponses = new ArrayList<>();
@@ -67,12 +69,12 @@ public class BuyingBehaviour extends Behaviour {
      */
     private void reachForSellers() throws FIPAException {
         ServiceDescription serviceDescription = new ServiceDescription();
-        serviceDescription.setType(((ProducerConsumer) this.getAgent()).getConsumingType());
+        serviceDescription.setType(this.producerConsumerAgent.getConsumingType());
         DFAgentDescription dfAgentDescription = new DFAgentDescription();
         dfAgentDescription.addServices(serviceDescription);
         DFAgentDescription[] foundAgents = DFService.search(this.getAgent(), dfAgentDescription);
-        ((ProducerConsumer) this.getAgent()).agentPrint("Found " + foundAgents.length +
-                " Selling " + (((ProducerConsumer) this.getAgent())).getSellingType());
+        this.producerConsumerAgent.agentPrint("Found " + foundAgents.length +
+                " Selling " + this.producerConsumerAgent.getSellingType());
         if (foundAgents.length > 0) {
             ACLMessage message = new ACLMessage(ACLMessage.CFP);
 
@@ -101,12 +103,12 @@ public class BuyingBehaviour extends Behaviour {
                     String buyingQuantity = receivedProposal.getContent().split(",")[1];
                     String buyingPrice = receivedProposal.getContent().split(",")[2];
                     String sellerName = receivedProposal.getContent().split(",")[3];
-                    ((ProducerConsumer) this.getAgent()).agentPrint("Received proposition from : " + sellerName +
-                            "\toffers : " + buyingQuantity +
-                            "\tfor : " + buyingPrice);
+                    this.producerConsumerAgent.agentPrint("Received proposition from : " + sellerName +
+                            "\toffers : " + buyingQuantity + " " + this.producerConsumerAgent.getConsumingType() +
+                            "\tfor : " + buyingPrice + "€");
                     // Finding best selling ratio and agent must have enough money
                     if (((Double.parseDouble(buyingPrice) / Double.parseDouble(buyingQuantity)) < (bestSellingPrice / bestSellerQuantity)) &&
-                            Double.parseDouble(buyingPrice) < ((ProducerConsumer) this.getAgent()).getMoney()) {
+                            Double.parseDouble(buyingPrice) < this.producerConsumerAgent.getMoney()) {
 
                         bestSellingPrice = Double.parseDouble(buyingPrice);
                         bestSellerQuantity = Double.parseDouble(buyingQuantity);
@@ -160,15 +162,22 @@ public class BuyingBehaviour extends Behaviour {
                 // Seller sending it's own name
                 if (this.pendingTransactions.containsKey(potentialConfirmation.getSender().getName())) {
                     if (potentialConfirmation.getPerformative() == ACLMessage.CONFIRM) {
-                        ((ProducerConsumer) this.getAgent()).setMoney(((ProducerConsumer) this.getAgent()).getMoney() - this.pendingTransactions.get(potentialConfirmation.getContent()).getBuyingPrice());
-                        ((ProducerConsumer) this.getAgent()).setConsumingStock(((ProducerConsumer) this.getAgent()).getConsumingStock() + this.pendingTransactions.get(potentialConfirmation.getContent()).getBuyingQuantity());
-                        ((ProducerConsumer) this.getAgent()).agentPrint("Confirmation received, new state " + this.getAgent().toString());
+//                        this.producerConsumerAgent.setMoney(this.producerConsumerAgent.getMoney() - this.pendingTransactions.get(potentialConfirmation.getContent()).getBuyingPrice());
+//                        this.producerConsumerAgent.setConsumingStock(this.producerConsumerAgent.getConsumingStock() + this.pendingTransactions.get(potentialConfirmation.getContent()).getBuyingQuantity());
+//                        this.producerConsumerAgent.agentPrint("Confirmation received, new state " + this.getAgent().toString());
+//                        this.pendingTransactions.remove(potentialConfirmation.getSender().getName());
+//                        this.isTransactionFinished = true;
+
+                        this.producerConsumerAgent.setConsumingStock(this.producerConsumerAgent.getConsumingStock() + Double.parseDouble(potentialConfirmation.getContent().split(",")[1]));
+                        this.producerConsumerAgent.setMoney(this.producerConsumerAgent.getMoney() - Double.parseDouble(potentialConfirmation.getContent().split(",")[2]));
+                        this.producerConsumerAgent.agentPrint("Confirmation received, new state " + this.getAgent().toString());
                         this.pendingTransactions.remove(potentialConfirmation.getSender().getName());
                         this.isTransactionFinished = true;
+
                     }
 
                 } else {
-                    ((ProducerConsumer) this.getAgent()).agentPrintError("Confirmation received from agent" + potentialConfirmation.getContent() + " not listed in the map");
+                    this.producerConsumerAgent.agentPrintError("Confirmation received from agent" + potentialConfirmation.getContent() + " not listed in transaction map");
                 }
             }
         }
@@ -182,7 +191,7 @@ public class BuyingBehaviour extends Behaviour {
     @Override
     public boolean done() {
         if ((this.pendingTransactions.isEmpty() && this.pendingReaching.isEmpty()) || this.isTransactionFinished) {
-            ((ProducerConsumer) this.getAgent()).setTryingToBuy(false);
+            this.producerConsumerAgent.setTryingToBuy(false);
             return true;
         } else
             return false;

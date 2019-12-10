@@ -4,7 +4,7 @@
 
 Buyer sends its own name with `CFP`.
 
-The seller responds with a string like this `name_of_buyer,selling_quantity,selling_price,seller_name`, this is why it's forbiden to put commas in agent's name.
+The seller responds with a string like this `name_of_buyer,selling_quantity,selling_price,seller_name`, this is why it's forbidden to put commas in agent's name.
 
 This is a CSV format, do not put space.
 
