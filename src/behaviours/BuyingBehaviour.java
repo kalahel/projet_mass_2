@@ -16,6 +16,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Behaviour used when an agent is trying to buy more stock to consume
+ * This is a finite state machine with four states :
+ * - Find and contact sellers : reachForSellers()
+ * - Receiving and handling sellers proposals : receiveSellersProposals()
+ * - Responding to sellers proposals : respondToProposals()
+ * - Receiving and handling confirmations : receiveConfirmation()
+ */
 public class BuyingBehaviour extends Behaviour {
     private ProducerConsumer producerConsumerAgent;
     private Map<String, DFAgentDescription> pendingReaching;
@@ -26,7 +34,6 @@ public class BuyingBehaviour extends Behaviour {
     private double bestSellerQuantity;
     private boolean reachingHasBeenDone;
     private boolean isTransactionFinished;
-    private int currentState;
 
     public BuyingBehaviour(Agent a) {
         super(a);
@@ -39,15 +46,16 @@ public class BuyingBehaviour extends Behaviour {
         this.bestSellerQuantity = 1;
         this.reachingHasBeenDone = false;
         this.isTransactionFinished = false;
-        this.currentState = 0;
     }
 
+    /**
+     * Finite state machine with the four states and their transition conditions
+     */
     @Override
     public void action() {
         if (!this.reachingHasBeenDone) {
             try {
                 this.reachForSellers();
-//                this.currentState = 1;
             } catch (FIPAException e) {
                 e.printStackTrace();
             }
@@ -57,7 +65,6 @@ public class BuyingBehaviour extends Behaviour {
             }
             if (!bestSellingAgentName.equals("") && this.pendingReaching.isEmpty()) {
                 this.respondToProposals();
-//                this.currentState = 2;
             }
             if (!this.pendingTransactions.isEmpty()) {
                 this.receiveConfirmation();
@@ -95,10 +102,11 @@ public class BuyingBehaviour extends Behaviour {
 
     /**
      * This method checks for responses from sellers
-     * This will be called until all the potential sellers has responded
+     * This will be called until all the potential sellers have responded
      * Compute the best offer based on the Selling Price/Quantity ratio
      */
     private void receiveSellersProposals() {
+        // Template is used to avoid loosing messages
         MessageTemplate messageTemplate = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
         ACLMessage receivedProposal = this.getAgent().receive(messageTemplate);
         if (receivedProposal != null) {
@@ -160,6 +168,7 @@ public class BuyingBehaviour extends Behaviour {
      * Update agent money and stock accordingly
      */
     private void receiveConfirmation() {
+        // Template is used to avoid loosing messages
         MessageTemplate messageTemplate = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
         ACLMessage potentialConfirmation = this.getAgent().receive(messageTemplate);
         if (potentialConfirmation != null) {

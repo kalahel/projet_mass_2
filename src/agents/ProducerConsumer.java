@@ -7,22 +7,28 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 
+/**
+ * Main agent of this system
+ * Capable of selling and buying according to its needs
+ * Has a type of resources that it consumes and another that it produces
+ */
 public class ProducerConsumer extends Agent {
     public static final int MAX_STOCK = 200;
     public static final double CONSUMED_STOCK_PER_TICK = 2;
     public static final int PRODUCTION_RATE = 3;
 
-
     private double money;
     private double sellingStock;
     private double consumingStock;
-    private double sellingPrice;
+    private double baseSellingPrice;
     private String sellingType;
     private String consumingType;
     private double happiness;
     private boolean isTryingToBuy;
 
-
+    /**
+     * Register to the yellow page and had all the behaviours needed for its lifetime
+     */
     @Override
     protected void setup() {
         super.setup();
@@ -30,7 +36,7 @@ public class ProducerConsumer extends Agent {
         this.sellingStock = 10;
         this.consumingStock = 10;
         this.happiness = 1.0;
-        this.sellingPrice = 12;
+        this.baseSellingPrice = 2;
         this.isTryingToBuy = false;
 
         Object[] args = getArguments();
@@ -61,7 +67,20 @@ public class ProducerConsumer extends Agent {
 
     }
 
+    /**
+     * Compute the appropriate price to sell a unit of its stock
+     * When happiness decreases
+     * @return price to sell a unit of product
+     */
+    public double computePriceToSell(){
+        return this.happiness * this.baseSellingPrice;
+    }
 
+    /**
+     * Simple print function to allow all the agent to automatically print their name and class with the desired message
+     *
+     * @param message String to print
+     */
     public void agentPrint(String message) {
         System.out.println("__" +
                 this.getClass() +
@@ -71,6 +90,11 @@ public class ProducerConsumer extends Agent {
                 message);
     }
 
+    /**
+     * Simple print error function to allow all the agent to automatically print their name and class with the desired message
+     *
+     * @param message String to print to error chanel
+     */
     public void agentPrintError(String message) {
         System.err.println("__" +
                 this.getClass() +
@@ -80,10 +104,23 @@ public class ProducerConsumer extends Agent {
                 message);
     }
 
+    /**
+     * Clean deregister from yellow page before takeDown
+     */
+    @Override
+    protected void takeDown() {
+        this.agentPrint("AGENT REMOVED FROM SYSTEM");
+        try {
+            DFService.deregister(this);
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
+        super.takeDown();
+    }
+
     public double getMoney() {
         return money;
     }
-
 
 
     public void setMoney(double money) {
@@ -106,8 +143,8 @@ public class ProducerConsumer extends Agent {
         this.consumingStock = consumingStock;
     }
 
-    public double getSellingPrice() {
-        return sellingPrice;
+    public double getBaseSellingPrice() {
+        return baseSellingPrice;
     }
 
 
@@ -115,17 +152,11 @@ public class ProducerConsumer extends Agent {
         return sellingType;
     }
 
-    public void setSellingType(String sellingType) {
-        this.sellingType = sellingType;
-    }
 
     public String getConsumingType() {
         return consumingType;
     }
 
-    public void setConsumingType(String consumingType) {
-        this.consumingType = consumingType;
-    }
 
     public double getHappiness() {
         return happiness;
@@ -149,7 +180,7 @@ public class ProducerConsumer extends Agent {
                 "money=" + money +
                 ", sellingStock=" + sellingStock +
                 ", consumingStock=" + consumingStock +
-                ", sellingPrice=" + sellingPrice +
+                ", baseSellingPrice=" + baseSellingPrice +
                 ", sellingType='" + sellingType + '\'' +
                 ", consumingType='" + consumingType + '\'' +
                 ", happiness=" + happiness +

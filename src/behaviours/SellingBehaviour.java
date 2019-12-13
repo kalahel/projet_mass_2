@@ -6,32 +6,39 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import java.util.Random;
-
+/**
+ * Cyclic behaviour allowing an agent to be ready to respond to potentials buyers
+ */
 public class SellingBehaviour extends CyclicBehaviour {
     private ProducerConsumer producerConsumerAgent;
-    private int currentState;
 
     public SellingBehaviour(Agent a) {
         super(a);
         this.producerConsumerAgent = (ProducerConsumer) a;
-        this.currentState = 0;
     }
 
+    /**
+     * Call sellingRoutine()
+     */
     @Override
     public void action() {
         sellingRoutine();
     }
 
+    /**
+     * Checks for CFP or ACCEPT_PROPOSAL from buyer and respond accordingly
+     * It will always try to sell a tenth of its stock, the price for a unit varies depending of the agent's happiness
+     */
     private void sellingRoutine() {
+        // Template is used to avoid loosing messages
         MessageTemplate messageTemplate = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.CFP), MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL));
         ACLMessage receivedProposal = this.getAgent().receive(messageTemplate);
         if (receivedProposal != null) {
             // Check the type of response
             if (receivedProposal.getPerformative() == ACLMessage.CFP) {
                 // Seller try to sell a portion of its stock
-                double proposedQuantity = this.producerConsumerAgent.getSellingStock() / 100;
-                double sellingPrice = this.producerConsumerAgent.getSellingPrice() * proposedQuantity;
+                double proposedQuantity = this.producerConsumerAgent.getSellingStock() / 10;
+                double sellingPrice = this.producerConsumerAgent.computePriceToSell() * proposedQuantity;
                 if (proposedQuantity > ProducerConsumer.MAX_STOCK)
                     this.producerConsumerAgent.agentPrintError("Proposed more than theoretical max stock, agent state : \n" + this.getAgent().toString());
                 ACLMessage reply = receivedProposal.createReply();
@@ -44,7 +51,6 @@ public class SellingBehaviour extends CyclicBehaviour {
                 this.producerConsumerAgent.agentPrint("Proposition sent to : " + receivedProposal.getContent() +
                         "\toffers : " + proposedQuantity + " " + this.producerConsumerAgent.getConsumingType() +
                         "\tfor : " + sellingPrice + "€");
-//                this.currentState = 1;
             } else if (receivedProposal.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
                 ACLMessage reply = receivedProposal.createReply();
                 reply.setPerformative(ACLMessage.CONFIRM);
@@ -56,10 +62,8 @@ public class SellingBehaviour extends CyclicBehaviour {
                 reply.setContent(receivedProposal.getContent());
                 this.getAgent().send(reply);
                 this.producerConsumerAgent.agentPrint("Confirmation sent to : " + receivedProposal.getContent());
-//                this.currentState = 0;
             }
-//            else if (receivedProposal.getPerformative() == ACLMessage.REJECT_PROPOSAL && currentState ==1)
-//                this.currentState = 0;
+
         }
 
     }
