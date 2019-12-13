@@ -9,10 +9,12 @@ import java.util.Random;
 
 public class SellingBehaviour extends CyclicBehaviour {
     private ProducerConsumer producerConsumerAgent;
+    private int currentState;
 
     public SellingBehaviour(Agent a) {
         super(a);
         this.producerConsumerAgent = (ProducerConsumer) a;
+        this.currentState = 0;
     }
 
     @Override
@@ -24,7 +26,7 @@ public class SellingBehaviour extends CyclicBehaviour {
         ACLMessage receivedProposal = this.getAgent().receive();
         if (receivedProposal != null) {
             // Check the type of response
-            if (receivedProposal.getPerformative() == ACLMessage.CFP) {
+            if (receivedProposal.getPerformative() == ACLMessage.CFP && this.currentState == 0) {
                 // Seller try to sell a portion of its stock
                 double proposedQuantity = this.producerConsumerAgent.getSellingStock()/100;
                 double sellingPrice = this.producerConsumerAgent.getSellingPrice() * proposedQuantity;
@@ -38,7 +40,8 @@ public class SellingBehaviour extends CyclicBehaviour {
                         this.getAgent().getName());
                 this.getAgent().send(reply);
                 this.producerConsumerAgent.agentPrint("Proposition sent to : " + receivedProposal.getContent());
-            } else if (receivedProposal.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+                this.currentState = 1;
+            } else if (receivedProposal.getPerformative() == ACLMessage.ACCEPT_PROPOSAL && currentState ==1) {
                 ACLMessage reply = receivedProposal.createReply();
                 reply.setPerformative(ACLMessage.CONFIRM);
                 this.producerConsumerAgent.setSellingStock(this.producerConsumerAgent.getSellingStock()
@@ -49,8 +52,10 @@ public class SellingBehaviour extends CyclicBehaviour {
                 reply.setContent(receivedProposal.getContent());
                 this.getAgent().send(reply);
                 this.producerConsumerAgent.agentPrint("Confirmation sent to : " + receivedProposal.getContent());
-
+                this.currentState = 0;
             }
+            else if (receivedProposal.getPerformative() == ACLMessage.REJECT_PROPOSAL && currentState ==1)
+                this.currentState = 0;
         }
     }
 }
