@@ -57,7 +57,7 @@ public class ProducerConsumer extends Agent {
         this.addBehaviour(new ProducerBehaviour());
         this.addBehaviour(new ConsumingBehaviour(this));
         this.addBehaviour(new SellingBehaviour(this));
-        this.addBehaviour(new BuyingDecisionBehaviour());
+        this.addBehaviour(new BuyingDecisionBehaviour(this));
 
     }
 

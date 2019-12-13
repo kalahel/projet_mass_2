@@ -25,6 +25,7 @@ public class BuyingBehaviour extends Behaviour {
     private double bestSellerQuantity;
     private boolean reachingHasBeenDone;
     private boolean isTransactionFinished;
+    private int currentState;
 
     public BuyingBehaviour(Agent a) {
         super(a);
@@ -37,6 +38,7 @@ public class BuyingBehaviour extends Behaviour {
         this.bestSellerQuantity = 1;
         this.reachingHasBeenDone = false;
         this.isTransactionFinished = false;
+        this.currentState = 0;
     }
 
     @Override
@@ -44,6 +46,7 @@ public class BuyingBehaviour extends Behaviour {
         if (!this.reachingHasBeenDone) {
             try {
                 this.reachForSellers();
+//                this.currentState = 1;
             } catch (FIPAException e) {
                 e.printStackTrace();
             }
@@ -51,8 +54,9 @@ public class BuyingBehaviour extends Behaviour {
             if (!pendingReaching.isEmpty()) {
                 this.receiveSellersProposals();
             }
-            if (!bestSellingAgentName.equals("")) {
+            if (!bestSellingAgentName.equals("") && this.pendingReaching.isEmpty()) {
                 this.respondToProposals();
+//                this.currentState = 2;
             }
             if (!this.pendingTransactions.isEmpty()) {
                 this.receiveConfirmation();
