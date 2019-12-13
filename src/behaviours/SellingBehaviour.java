@@ -4,6 +4,7 @@ import agents.ProducerConsumer;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 import java.util.Random;
 
@@ -23,7 +24,8 @@ public class SellingBehaviour extends CyclicBehaviour {
     }
 
     private void sellingRoutine() {
-        ACLMessage receivedProposal = this.getAgent().receive();
+        MessageTemplate messageTemplate = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.CFP), MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL));
+        ACLMessage receivedProposal = this.getAgent().receive(messageTemplate);
         if (receivedProposal != null) {
             // Check the type of response
             if (receivedProposal.getPerformative() == ACLMessage.CFP) {

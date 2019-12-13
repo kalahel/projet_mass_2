@@ -8,6 +8,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import utils.Transaction;
 
 import java.util.ArrayList;
@@ -98,7 +99,8 @@ public class BuyingBehaviour extends Behaviour {
      * Compute the best offer based on the Selling Price/Quantity ratio
      */
     private void receiveSellersProposals() {
-        ACLMessage receivedProposal = this.getAgent().receive();
+        MessageTemplate messageTemplate = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
+        ACLMessage receivedProposal = this.getAgent().receive(messageTemplate);
         if (receivedProposal != null) {
             if (receivedProposal.getPerformative() == ACLMessage.PROPOSE) {
                 // Take only responses addressed to this agent
@@ -158,20 +160,12 @@ public class BuyingBehaviour extends Behaviour {
      * Update agent money and stock accordingly
      */
     private void receiveConfirmation() {
-        // TODO USE SAME PROTOCOL TO AVOID HAVING TO PERSIST INFORMATION
-        // TODO USE THIS LIKE A PING/PONG (DO NOT FORGET TO CHANGE SellingBehaviour IN THIS CASE)
-        ACLMessage potentialConfirmation = this.getAgent().receive();
+        MessageTemplate messageTemplate = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
+        ACLMessage potentialConfirmation = this.getAgent().receive(messageTemplate);
         if (potentialConfirmation != null) {
             {
-                // Seller sending it's own name
                 if (this.pendingTransactions.containsKey(potentialConfirmation.getSender().getName())) {
                     if (potentialConfirmation.getPerformative() == ACLMessage.CONFIRM) {
-//                        this.producerConsumerAgent.setMoney(this.producerConsumerAgent.getMoney() - this.pendingTransactions.get(potentialConfirmation.getContent()).getBuyingPrice());
-//                        this.producerConsumerAgent.setConsumingStock(this.producerConsumerAgent.getConsumingStock() + this.pendingTransactions.get(potentialConfirmation.getContent()).getBuyingQuantity());
-//                        this.producerConsumerAgent.agentPrint("Confirmation received, new state " + this.getAgent().toString());
-//                        this.pendingTransactions.remove(potentialConfirmation.getSender().getName());
-//                        this.isTransactionFinished = true;
-
                         this.producerConsumerAgent.setConsumingStock(this.producerConsumerAgent.getConsumingStock() + Double.parseDouble(potentialConfirmation.getContent().split(",")[1]));
                         this.producerConsumerAgent.setMoney(this.producerConsumerAgent.getMoney() - Double.parseDouble(potentialConfirmation.getContent().split(",")[2]));
                         this.producerConsumerAgent.agentPrint("Confirmation received, new state " + this.getAgent().toString());
