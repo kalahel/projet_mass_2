@@ -10,15 +10,32 @@ Henri **Bertrand**
 
 Ce projet à été réalisé dans le cadre du Master 2  Intelligence Embarquée de l'université Cergy-Pontoise.
 
-La documentation du code est sous forme de Javadoc, ce document illustre le fonctionnement des différents agents/behaviours de façon schématique.
+La documentation du code est sous forme de Javadoc (voir `./javadoc`), ce document illustre le fonctionnement des différents agents/behaviours de façon schématique.
+
+## Arguments de compilation
+
+Voici les différents arguments à passer à la compilation pour instancier 3 agents s'achetant et se vendant des produits.
+
+```shell
+-gui -agents "p1:agents.ProducerConsumer(oil,weat);p2:agents.ProducerConsumer(weat,wood);p3:agents.ProducerConsumer(wood,oil)"
+```
 
 ### Notes
 
-Les `MessageTemplate` sont utilisés pour empécher de défiler les messages qui ne sont pas utilisés par le `behaviour` appelant `receive()`, cela permet de dissocier le comportement de vente de celui d'achat.
+Les `MessageTemplate` sont utilisés pour empêcher de défiler les messages qui ne sont pas utilisés par le `behaviour` appelant `receive()`, cela permet de dissocier le comportement de vente de celui d'achat.
 
 ## Agents
 
 ### ProducerConsumer
+
+Agent principal de cette simulation, possède les différents comportements liés à la production, la consommation, l'achat et la vente de stock.
+
+Il prend en paramètre :
+
+1. Le type de produit qu'il produit et vends
+2. Le type de produit qu'il achète et consomme.
+
+Il contient aussi les différentes méthodes liées à son fonctionnement comme le calcul du prix de vente en fonction de son bonheur actuel.
 
 
 
@@ -32,11 +49,23 @@ Le vendeur choisi est celui proposant la meilleure offre en terme de prix unitai
 
 Ce comportement est considéré comme terminé une fois la transaction réalisée.
 
-C'est une machine à état comme suit :
+C'est une machine à états comme suit :
 
 ![finite state machine diagram](https://i.ibb.co/HB9VkFc/buying-Behaviour.png)
 
 
+
+### BuyingDecisionBehaviour
+
+Comportement cyclique permettant d'ajouter un comportant `BuyingBehaviour` si l'agent n'a plus de stock et n'est pas déjà en train d'essayer d'acheter.
+
+### ConsumingBehaviour
+
+Consomme des ressources et met à jour le bonheur de l'agent.
+
+SI l'agent peut consommer alors sont bonheur est mis à 1.
+
+Sinon il perd 10% de bonheur.
 
 ## Selling behaviour
 
@@ -55,7 +84,7 @@ Un protocole léger à été mise en place pour réaliser l'achat et la vente de
 
 
 
-les information envoyées en objets sont constitué sous la forme de csv pour identifier les différents champs, il est donc interdit d'avoir des types de produits ou des noms d'agents contenant des virgules.
+les informations envoyées en objets sont constitués sous la forme de csv pour identifier les différents champs, il est donc interdit d'avoir des types de produits ou des noms d'agents contenant des virgules.
 
 | Etape | Performative      | Contenu                                                      |
 | ----- | ----------------- | ------------------------------------------------------------ |
